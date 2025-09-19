@@ -1,0 +1,143 @@
+name: QRCode-Server 自动化构建与发布
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]  # 匹配语义化版本 Tag（如 v1.0.0）
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # 阶段1：代码质量检查（lint + 编译验证）
+  code-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Go 环境
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: 安装依赖
+        run: go mod tidy && go mod verify
+
+      - name: 代码 lint 检查
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m --enable=goimports,golint
+
+      - name: 编译验证
+        run: go build -o /dev/null main.go
+
+
+  # 阶段2：多平台编译（修复 matrix 配置，仅用原始类型）
+  multi-platform-build:
+    needs: code-check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false  # 某个平台失败不影响其他
+      # 关键修复：拆分为 4 个独立的原始类型维度，顺序一一对应
+      matrix:
+        goos: 
+          - linux
+          - linux
+          - windows
+          - darwin
+          - darwin
+          # 系统（与其他维度顺序匹配）
+        goarch: 
+          - amd64
+          - arm64
+          - amd64
+          - amd64
+          - arm64
+          # 架构
+        output: 
+           - "qrcode-server-linux-amd64"
+           - "qrcode-server-linux-arm64"
+           - "qrcode-server-windows-amd64.exe"
+           - "qrcode-server-darwin-amd64"
+           - "qrcode-server-darwin-arm64"
+        zip:
+           - "linux-amd64.zip"
+           - "linux-arm64.zip"
+           - "windows-amd64.zip"
+           - "darwin-amd64.zip"
+           - "darwin-arm64.zip"
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 设置 Go 环境
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: 安装依赖
+        run: go mod tidy
+
+      - name: 生成版本信息
+        id: version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            VERSION="main-$(git rev-parse --short HEAD)"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "::set-output name=version::$VERSION"
+
+      - name: 编译 ${{ matrix.goos }}/${{ matrix.goarch }} 平台
+        run: |
+          # 使用 matrix 中的原始类型变量（无对象，避免错误）
+          GOOS=${{ matrix.goos }} \
+          GOARCH=${{ matrix.goarch }} \
+          go build -ldflags "-s -w -X main.version=${{ env.VERSION }}" \
+          -o "bin/${{ matrix.output }}" main.go
+          # 压缩产物
+          cd bin && zip ${{ matrix.zip }} ${{ matrix.output }}
+
+      - name: 暂存编译产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.zip }}
+          path: bin/${{ matrix.zip }}
+          retention-days: 14
+          if-no-files-found: error
+
+
+  # 阶段3：GitHub Release 发布（仅 Tag 推送时执行）
+  release:
+    needs: multi-platform-build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 下载所有编译产物
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: 整理产物
+        run: |
+          mkdir -p final-release
+          find release-artifacts -name "*.zip" -exec mv {} final-release/ \;
+
+      - name: 创建 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: README.md
+          files: final-release/*.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

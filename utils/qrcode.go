@@ -1,6 +1,5 @@
 package utils
 
-// utils/qrcode.go 中添加导入
 // utils/qrcode.go 导入部分（关键修改：给 gozxing/qrcode 加别名）
 import (
 	"fmt"
@@ -8,7 +7,7 @@ import (
 	"image/color"
 	"image/jpeg"
 	"image/png"
-	"io" // 新增：解决 io 未定义
+	"io"
 
 	"github.com/makiuchi-d/gozxing"
 	gozxingQR "github.com/makiuchi-d/gozxing/qrcode" // 别名：gozxingQR，避免冲突

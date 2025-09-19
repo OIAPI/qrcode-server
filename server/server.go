@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"log/slog"
 
 	"qrcode-server/config" // 替换为实际模块名
-	"log/slog"
 )
 
 // Start 启动HTTP服务（接收Gin引擎和日志实例）

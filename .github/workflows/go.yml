@@ -27,7 +27,7 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
-          args: --timeout=5m --enable=goimports,golint
+          args: --timeout=5m --enable=goimports,revive
 
       - name: 编译验证
         run: go build -o /dev/null main.go

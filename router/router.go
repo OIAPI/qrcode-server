@@ -3,10 +3,10 @@ package router
 import (
 	"image"
 	"net/http"
+	"log/slog"
 
 	"github.com/gin-gonic/gin"
-	"qrcode-server/utils" // 替换为实际模块名
-	"log/slog"
+	"qrcode-server/utils"
 )
 
 // router/router.go 中的 InitRouter 函数（修改中间件部分）

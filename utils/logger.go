@@ -8,8 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lestrrat-go/file-rotatelogs" // 日志切割库
-	"qrcode-server/config"                  // 你的配置模块名
+	"qrcode-server/config"
+
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 )
 
 var (
@@ -43,8 +44,8 @@ func InitLogger() {
 			rotator, err := rotatelogs.New(
 				// 切割后的日志文件名模板（路径+前缀+时间戳）
 				filepath.Join(logDir, logName+".%Y%m%d%H%M%S"),
-				rotatelogs.WithMaxAge(7*24*time.Hour), // 日志保留时间（可选，如7天）
-				rotatelogs.WithRotationSize(int64(cfg.Log.MaxSize) * 1024 * 1024), // 单文件最大大小（MB→Byte）
+				rotatelogs.WithMaxAge(7*24*time.Hour),                         // 日志保留时间（可选，如7天）
+				rotatelogs.WithRotationSize(int64(cfg.Log.MaxSize)*1024*1024), // 单文件最大大小（MB→Byte）
 			)
 			if err != nil {
 				slog.Error("init log rotator failed", "path", cfg.Log.Path, "error", err)

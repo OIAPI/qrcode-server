@@ -3,12 +3,12 @@ package server
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	"log/slog"
 
 	"qrcode-server/config" // 替换为实际模块名
 )
@@ -18,8 +18,8 @@ func Start(handler http.Handler, log *slog.Logger) {
 	// 从配置获取服务参数
 	cfg := config.Get()
 	srv := &http.Server{
-		Addr:         cfg.Server.GetAddr(),       // 服务端口
-		Handler:      handler,                     // Gin路由引擎
+		Addr:         cfg.Server.GetAddr(), // 服务端口
+		Handler:      handler,              // Gin路由引擎
 		ReadTimeout:  time.Duration(cfg.Server.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(cfg.Server.WriteTimeout) * time.Second,
 	}

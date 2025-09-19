@@ -17,8 +17,8 @@ type Config struct {
 
 // ServerConfig 服务配置（拆分 Host 和 Port，独立配置）
 type ServerConfig struct {
-	Host         string `yaml:"host"`         // 绑定地址（如 "0.0.0.0" 允许外网访问，"127.0.0.1" 仅本地访问）
-	Port         string `yaml:"port"`         // 端口（如 "8080"）
+	Host         string `yaml:"host"`          // 绑定地址
+	Port         string `yaml:"port"`          // 端口（如 "8080"）
 	ReadTimeout  int    `yaml:"read_timeout"`  // 读取超时（秒）
 	WriteTimeout int    `yaml:"write_timeout"` // 写入超时（秒）
 }
@@ -35,10 +35,10 @@ func (s *ServerConfig) GetAddr() string {
 
 // 以下 LogConfig、QRCodeConfig 结构体保持不变...
 type LogConfig struct {
-	Level    string `yaml:"level"`
-	Path     string `yaml:"path"`
-	MaxSize  int    `yaml:"max_size"`
-	MaxAge   int    `yaml:"max_age"`
+	Level     string `yaml:"level"`
+	Path      string `yaml:"path"`
+	MaxSize   int    `yaml:"max_size"`
+	MaxAge    int    `yaml:"max_age"`
 	MaxBackup int    `yaml:"max_backup"`
 }
 

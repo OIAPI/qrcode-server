@@ -9,20 +9,19 @@ import (
 	"image/png"
 	"io"
 
+	"qrcode-server/config"
+
 	"github.com/makiuchi-d/gozxing"
-	gozxingQR "github.com/makiuchi-d/gozxing/qrcode" // 别名：gozxingQR，避免冲突
-	"github.com/skip2/go-qrcode"				// 保留原包名 qrcode（生成二维码用）
-	"qrcode-server/config"  // 替换为你的本地模块名
+	gozxingQR "github.com/makiuchi-d/gozxing/qrcode"
+	"github.com/skip2/go-qrcode"
 )
-
-
 
 // QRGenerateParam 二维码生成参数
 type QRGenerateParam struct {
 	Content string // 二维码内容（必传）
-	Size		int		// 尺寸（像素）
-	Level	 string // 纠错级别（L/M/Q/H）
-	Type		string // 图片格式（png/jpeg）
+	Size    int    // 尺寸（像素）
+	Level   string // 纠错级别（L/M/Q/H）
+	Type    string // 图片格式（png/jpeg）
 }
 
 // GenerateQR 生成二维码图片（返回image.Image实例）
@@ -40,9 +39,9 @@ func GenerateQR(param QRGenerateParam) (image.Image, error) {
 	}
 
 	// 3. 自定义样式（增强多样性）
-	qrInst.BackgroundColor = color.White				 // 背景色
-	qrInst.ForegroundColor = color.RGBA{0,0,0,255} // 码点色（黑色，可自定义其他色）
-	qrInst.DisableBorder = false								 // 显示边框（false=显示，true=隐藏）
+	qrInst.BackgroundColor = color.White              // 背景色
+	qrInst.ForegroundColor = color.RGBA{0, 0, 0, 255} // 码点色（黑色，可自定义其他色）
+	qrInst.DisableBorder = false                      // 显示边框（false=显示，true=隐藏）
 
 	// 4. 生成图片
 	return qrInst.Image(param.Size), nil
@@ -86,13 +85,13 @@ func parseQRErrorLevel(levelStr string) (qrcode.RecoveryLevel, error) {
 	// 转换为qrcode库的RecoveryLevel
 	switch levelStr {
 	case "L":
-		return qrcode.Low, nil		// 7%纠错（适合内容简单场景）
+		return qrcode.Low, nil // 7%纠错（适合内容简单场景）
 	case "M":
 		return qrcode.Medium, nil // 15%纠错（默认，平衡性能和容错）
 	case "Q":
-		return qrcode.High, nil	 // 25%纠错（适合复杂环境）
+		return qrcode.High, nil // 25%纠错（适合复杂环境）
 	case "H":
-		return qrcode.Highest, nil// 30%纠错（容错最高，二维码密度大）
+		return qrcode.Highest, nil // 30%纠错（容错最高，二维码密度大）
 	default:
 		return 0, fmt.Errorf("level 必须是 L/M/Q/H")
 	}

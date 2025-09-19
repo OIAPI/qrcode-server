@@ -2,11 +2,12 @@ package router
 
 import (
 	"image"
-	"net/http"
 	"log/slog"
+	"net/http"
+
+	"qrcode-server/utils"
 
 	"github.com/gin-gonic/gin"
-	"qrcode-server/utils"
 )
 
 // router/router.go 中的 InitRouter 函数（修改中间件部分）
@@ -18,11 +19,11 @@ func InitRouter(log *slog.Logger) *gin.Engine {
 	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
 		Output: &slogWriter{log: log}, // 字段名改为 Output
 	}), gin.Recovery())
-	
+
 	registerQRCodeRoutes(r, log)
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
-			"title": "页面不存在",
+			"title":   "页面不存在",
 			"message": "您访问的路径不存在，请检查 URL 是否正确",
 		})
 	})
@@ -78,8 +79,8 @@ func handleGenerateQR(log *slog.Logger) gin.HandlerFunc {
 		if !utils.CheckQRType(param.Type) {
 			supportTypes := utils.GetQRSupportTypes()
 			c.JSON(http.StatusBadRequest, gin.H{
-				"code": -3,
-				"message":  "不支持的格式, 只支持: " + supportTypes,
+				"code":    -3,
+				"message": "不支持的格式, 只支持: " + supportTypes,
 			})
 			return
 		}
@@ -112,8 +113,8 @@ func handleDecodeQR(log *slog.Logger) gin.HandlerFunc {
 			if err != nil {
 				log.Error("从URL下载图像失败", "url", imgURL, "error", err)
 				c.JSON(http.StatusBadRequest, gin.H{
-					"code": -6,
-					"message":  "无法从URL下载图像（检查URL有效性）",
+					"code":    -6,
+					"message": "无法从URL下载图像（检查URL有效性）",
 				})
 				return
 			}
@@ -123,8 +124,8 @@ func handleDecodeQR(log *slog.Logger) gin.HandlerFunc {
 			if resp.StatusCode != http.StatusOK {
 				log.Error("图像URL的无效HTTP状态", "url", imgURL, "status", resp.Status)
 				c.JSON(http.StatusBadRequest, gin.H{
-					"code": -7,
-					"message":  "图像URL返回无效状态: " + resp.Status,
+					"code":    -7,
+					"message": "图像URL返回无效状态: " + resp.Status,
 				})
 				return
 			}
@@ -134,8 +135,8 @@ func handleDecodeQR(log *slog.Logger) gin.HandlerFunc {
 			if err != nil {
 				log.Error("从URL解码图像失败", "url", imgURL, "error", err)
 				c.JSON(http.StatusBadRequest, gin.H{
-					"code": -8,
-					"message":  "URL不是有效的图像（支持PNG/JPEG）",
+					"code":    -8,
+					"message": "URL不是有效的图像（支持PNG/JPEG）",
 				})
 				return
 			}
@@ -144,8 +145,8 @@ func handleDecodeQR(log *slog.Logger) gin.HandlerFunc {
 			fileHeader, err := c.FormFile("file")
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{
-					"code": -9,
-					"message":  "需要“文件”（上传）或“ URL”（图像链接）",
+					"code":    -9,
+					"message": "需要“文件”（上传）或“ URL”（图像链接）",
 				})
 				return
 			}
@@ -155,8 +156,8 @@ func handleDecodeQR(log *slog.Logger) gin.HandlerFunc {
 			if err != nil {
 				log.Error("打开上传的文件失败", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{
-					"code": -10,
-					"message":  "无法打开上传的文件",
+					"code":    -10,
+					"message": "无法打开上传的文件",
 				})
 				return
 			}
@@ -167,8 +168,8 @@ func handleDecodeQR(log *slog.Logger) gin.HandlerFunc {
 			if err != nil {
 				log.Error("解码上传的图像失败", "error", err)
 				c.JSON(http.StatusBadRequest, gin.H{
-					"code": -11,
-					"message":  "上传的文件不是有效的映像（支持PNG/JPEG）",
+					"code":    -11,
+					"message": "上传的文件不是有效的映像（支持PNG/JPEG）",
 				})
 				return
 			}
@@ -179,17 +180,17 @@ func handleDecodeQR(log *slog.Logger) gin.HandlerFunc {
 		if err != nil {
 			log.Error("解码二维码失败，可能不存在二维码", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"code": 500,
-				"message":  "图像中未找到二维码",
+				"code":    500,
+				"message": "图像中未找到二维码",
 			})
 			return
 		}
 
 		// 4. 返回识别结果
 		c.JSON(http.StatusOK, gin.H{
-			"code": 1,
-			"message":  content,
-			"data": gin.H{"content": content},
+			"code":    1,
+			"message": content,
+			"data":    gin.H{"content": content},
 		})
 	}
 }

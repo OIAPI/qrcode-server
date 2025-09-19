@@ -1,0 +1,17 @@
+server:
+  host: "0.0.0.0"        # 服务器地址
+  port: "8080"          # 服务端口
+  read_timeout: 5       # 读超时5秒
+  write_timeout: 10     # 写超时10秒
+
+log:
+  level: "info"         # 日志级别：debug/info/warn/error
+  path: "qrcode.log"    # 日志写入文件（空则输出到控制台）
+  max_size: 10         # 日志大小，单位M
+
+qrcode:
+  default_size: 300     # 默认二维码尺寸（像素）
+  default_level: "M"    # 默认纠错级别（L/M/Q/H）
+  support_types:        # 支持的图片格式
+    - "png"
+    - "jpeg"

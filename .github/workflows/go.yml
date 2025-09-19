@@ -70,7 +70,7 @@ jobs:
             VERSION="main-$(git rev-parse --short HEAD)"
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "::set-output name=version::$VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: 编译 ${{ matrix.platform.goos }}/${{ matrix.platform.goarch }} 平台
         run: |
@@ -91,7 +91,6 @@ jobs:
           if-no-files-found: error
 
 
-  # 阶段3：GitHub Release 发布（仅 Tag 推送时执行）
   release:
     needs: multi-platform-build
     if: github.ref_type == 'tag'

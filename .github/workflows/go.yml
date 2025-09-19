@@ -1,4 +1,4 @@
-name: QRCode-Server 自动化构建与发布
+name: QRCode-Server
 
 on:
   push:
@@ -8,7 +8,6 @@ on:
     branches: [ main ]
 
 jobs:
-  # 阶段1：代码质量检查（lint + 编译验证）
   code-check:
     runs-on: ubuntu-latest
     steps:
@@ -22,7 +21,7 @@ jobs:
           cache: true
 
       - name: 安装依赖
-        run: go mod tidy && go mod verify
+        run: go mod init qrcode-server && go mod tidy && go mod verify
 
       - name: 代码 lint 检查
         uses: golangci/golangci-lint-action@v6
@@ -34,13 +33,11 @@ jobs:
         run: go build -o /dev/null main.go
 
 
-  # 阶段2：多平台编译（修复 matrix 配置，仅用原始类型）
   multi-platform-build:
     needs: code-check
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false  # 某个平台失败不影响其他
-      # 关键修复：拆分为 4 个独立的原始类型维度，顺序一一对应
       matrix:
         goos: 
           - linux
@@ -81,7 +78,7 @@ jobs:
           cache: true
 
       - name: 安装依赖
-        run: go mod tidy
+        run: go mod init qrcode-server && go mod tidy
 
       - name: 生成版本信息
         id: version

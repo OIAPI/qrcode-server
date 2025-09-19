@@ -39,32 +39,13 @@ jobs:
     strategy:
       fail-fast: false  # 某个平台失败不影响其他
       matrix:
-        goos: 
-          - linux
-          - linux
-          - windows
-          - darwin
-          - darwin
-          # 系统（与其他维度顺序匹配）
-        goarch: 
-          - amd64
-          - arm64
-          - amd64
-          - amd64
-          - arm64
-          # 架构
-        output: 
-           - "qrcode-server-linux-amd64"
-           - "qrcode-server-linux-arm64"
-           - "qrcode-server-windows-amd64.exe"
-           - "qrcode-server-darwin-amd64"
-           - "qrcode-server-darwin-arm64"
-        zip:
-           - "linux-amd64.zip"
-           - "linux-arm64.zip"
-           - "windows-amd64.zip"
-           - "darwin-amd64.zip"
-           - "darwin-arm64.zip"
+        # 使用对象数组的方式定义平台配置，确保各维度正确对应
+        platform: 
+          - { goos: linux, goarch: amd64, output: "qrcode-server-linux-amd64", zip: "linux-amd64.zip" }
+          - { goos: linux, goarch: arm64, output: "qrcode-server-linux-arm64", zip: "linux-arm64.zip" }
+          - { goos: windows, goarch: amd64, output: "qrcode-server-windows-amd64.exe", zip: "windows-amd64.zip" }
+          - { goos: darwin, goarch: amd64, output: "qrcode-server-darwin-amd64", zip: "darwin-amd64.zip" }
+          - { goos: darwin, goarch: arm64, output: "qrcode-server-darwin-arm64", zip: "darwin-arm64.zip" }
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -91,21 +72,21 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "::set-output name=version::$VERSION"
 
-      - name: 编译 ${{ matrix.goos }}/${{ matrix.goarch }} 平台
+      - name: 编译 ${{ matrix.platform.goos }}/${{ matrix.platform.goarch }} 平台
         run: |
-          # 使用 matrix 中的原始类型变量（无对象，避免错误）
-          GOOS=${{ matrix.goos }} \
-          GOARCH=${{ matrix.goarch }} \
+          # 使用 matrix 中的平台对象变量
+          GOOS=${{ matrix.platform.goos }} \
+          GOARCH=${{ matrix.platform.goarch }} \
           go build -ldflags "-s -w -X main.version=${{ env.VERSION }}" \
-          -o "bin/${{ matrix.output }}" main.go
+          -o "bin/${{ matrix.platform.output }}" main.go
           # 压缩产物
-          cd bin && zip ${{ matrix.zip }} ${{ matrix.output }}
+          cd bin && zip ${{ matrix.platform.zip }} ${{ matrix.platform.output }}
 
       - name: 暂存编译产物
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.zip }}
-          path: bin/${{ matrix.zip }}
+          name: ${{ matrix.platform.zip }}
+          path: bin/${{ matrix.platform.zip }}
           retention-days: 14
           if-no-files-found: error
 

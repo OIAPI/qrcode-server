@@ -37,7 +37,7 @@ QRCode-Server 是一个基于豆包编程，Go语言实现的二维码生成与�
   - [常见问题](#常见问题)
     - [1. 服务启动失败，提示“无法加载配置”？](#1-服务启动失败提示无法加载配置)
     - [2. 访问 API 提示“404 Not Found”？](#2-访问-api-提示404-not-found)
-    - [3. 二维码识别失败，提示“no qrcode found”？](#3-二维码识别失败提示no-qrcode-found)
+    - [3. 二维码识别失败，提示“找不到二维码”？](#3-二维码识别失败提示找不到二维码)
     - [4. 日志文件未生成？](#4-日志文件未生成)
   - [联系方式](#联系方式)
 
@@ -152,8 +152,8 @@ curl "http://localhost:8080/api/qrcode/generate?content=测试二维码&size=500
 - 失败：状态码 `400`（参数错误）/ `500`（服务异常），返回 JSON 错误信息：
   ```json
   {
-    "code": 400,
-    "msg": "content is required"  // 缺少 content 参数
+    "code": -1,                       // 多个错误码，但都为负数
+    "message": "content is required"  // 缺少 content 参数
   }
   ```
 
@@ -192,8 +192,8 @@ curl -X POST \
 - 成功：状态码 `200`，返回识别到的内容：
   ```json
   {
-    "code": 0,
-    "msg": "success",
+    "code": 1,
+    "message": "content", // 二维码的内容
     "data": {
       "content": "https://example.com"  // 二维码中的内容
     }
@@ -202,8 +202,8 @@ curl -X POST \
 - 失败：状态码 `400`（文件无效/URL 错误）/ `500`（识别失败），返回 JSON 错误信息：
   ```json
   {
-    "code": 500,
-    "msg": "no qrcode found in the image"  // 图片中未识别到二维码
+    "code": -1,                                // 多个错误码，但都为负数
+    "message": "图片中未识别到二维码"  // 图片中未识别到二维码
   }
   ```
 
@@ -224,6 +224,7 @@ qrcode-server/
 ```
 
 #### 2. 启动时指定配置文件
+`qrcode-server-linux` 是编译后的文件，替换为你的文件名。
 ```bash
 # 开发环境
 ./qrcode-server-linux -config ./conf/dev.yaml
@@ -236,7 +237,7 @@ qrcode-server/
 ### 日志配置
 日志默认同时输出到 **控制台** 和 **文件**，关键配置项说明：
 - `log.level`：日志级别，生产环境建议用 `warn`（减少日志量），开发环境用 `debug`（便于调试）；
-- `log.path`：日志文件路径，生产环境建议配置为 `/var/log/qrcode-server/qrcode.log`（需确保服务有写入权限）；
+- `log.path`：日志文件路径，生产环境建议配置为 `/var/log/qrcode-server/qrcode.log`（需确保服务有写入权限并且文件夹必须存在）；
 - `log.max_size`：单文件最大大小，建议设置 10-100MB（避免单个日志文件过大）；
 - `log.max_age`：日志保留天数，建议 7-30 天（平衡日志追溯和磁盘占用）。
 
@@ -289,7 +290,7 @@ time=2024-09-20T16:00:00Z level=INFO msg="服务器关闭成功"
 - 检查请求路径是否正确（如生成接口路径是 `/api/qrcode/generate`，而非 `/generate`）；
 - 检查服务是否启动成功（查看日志中是否有“服务器启动”的信息）。
 
-### 3. 二维码识别失败，提示“no qrcode found”？
+### 3. 二维码识别失败，提示“找不到二维码”？
 - 检查图片是否清晰（无遮挡、无模糊）；
 - 确认图片格式是否支持（仅 PNG/JPEG）；
 - 若使用 URL 识别，检查 URL 是否公开可访问（不支持需登录的链接）。

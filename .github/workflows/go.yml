@@ -107,7 +107,7 @@ jobs:
       - name: 整理产物
         run: |
           mkdir -p final-release
-          find release-artifacts -name "*.zip" -exec mv {} final-release/ \;
+          find release-artifacts -type f -name "*.zip" -exec mv {} final-release/ \;
 
       - name: 创建 GitHub Release
         uses: softprops/action-gh-release@v2
